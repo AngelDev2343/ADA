@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Eaglercraft | Angel Dev Arcade</title>
+<link rel="icon" href="../favicon.ico" sizes="any" />
+<link rel="icon" href="../favicon.png" type="image/png" />
+<style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; }
+</style>
+</head>
+<body>
+<iframe allowfullscreen allow="fullscreen; gamepad; autoplay; clipboard-read; clipboard-write"></iframe>
+<script>
+    // index.html?v=1.12.2 abre esa versión; sin v, la más reciente
+    const VERSIONES = {
+        "26.2": "https://angelsperez.github.io/egmc/eaglercraft-26.2-zeus-skins.html",
+        "1.12.2": "https://angelsperez.github.io/egmc/mc-1.12.2.html",
+        "1.8.8": "https://angelsperez.github.io/egmc/mc-1.8.8.html",
+    };
+    const juego = document.querySelector("iframe");
+    juego.src = VERSIONES[new URLSearchParams(location.search).get("v")] || VERSIONES["26.2"];
+    juego.onload = () => juego.focus();
+</script>
+<script src="../inicio.js" data-lado="derecha"></script>
+</body>
+</html>

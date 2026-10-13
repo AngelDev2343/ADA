@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Street Fighter III: 3rd Strike | Angel Dev Arcade</title>
+<link rel="icon" href="../favicon.ico" sizes="any" />
+<link rel="icon" href="../favicon.png" type="image/png" />
+<style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 13px sans-serif; color: #fff; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; }
+    .btn {
+        position: fixed; top: 10px; padding: 6px 10px; font: inherit; font-size: 12px; color: #fff; cursor: pointer;
+        text-decoration: none; background: rgba(0, 0, 0, .6); border: 1px solid rgba(255, 255, 255, .25); border-radius: 6px;
+        opacity: .35; transition: opacity .2s;
+    }
+    .btn:hover { opacity: 1; }
+    #controles {
+        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, .75);
+    }
+    #controles[hidden] { display: none; }
+    .caja { background: #111; border: 1px solid #333; border-radius: 10px; padding: 18px 22px; max-width: 420px; }
+    h2 { margin: 0 0 12px; font-size: 14px; letter-spacing: 2px; }
+    table { border-collapse: collapse; width: 100%; }
+    td { padding: 4px 10px 4px 0; border-bottom: 1px solid #222; }
+    td:not(:first-child) { color: #ffcf4a; }
+    th { text-align: left; font-weight: normal; color: #888; padding-bottom: 6px; }
+    p { margin: 12px 0 0; color: #aaa; line-height: 1.5; }
+</style>
+</head>
+<body>
+<iframe src="https://www.retrogames.cc/embed/10062-street-fighter-iii-3rd-strike%3A-fight-for-the-future-usa-990608.html" allowfullscreen scrolling="no" allow="fullscreen; gamepad; autoplay; cross-origin-isolated"></iframe>
+<script src="../inicio.js"></script>
+<button class="btn" style="left: 80px" onclick="controles.hidden = false">CONTROLES</button>
+<div id="controles" onclick="this.hidden = true">
+    <div class="caja">
+        <h2>CONTROLES</h2>
+        <table>
+            <tr><th></th><th>Teclado</th><th>Control</th></tr>
+            <tr><td>Moneda</td><td>Shift der.</td><td>Select</td></tr>
+            <tr><td>Empezar</td><td>Enter</td><td>Start</td></tr>
+            <tr><td>Moverse</td><td>Flechas</td><td>Cruceta</td></tr>
+            <tr><td>Golpe débil</td><td>S</td><td>Y / Triángulo</td></tr>
+            <tr><td>Golpe medio</td><td>A</td><td>X / Cuadrado</td></tr>
+            <tr><td>Golpe fuerte</td><td>Q</td><td>LB / L1</td></tr>
+            <tr><td>Patada débil</td><td>X</td><td>B / Círculo</td></tr>
+            <tr><td>Patada media</td><td>Z</td><td>A / Cruz</td></tr>
+            <tr><td>Patada fuerte</td><td>E</td><td>RB / R1</td></tr>
+        </table>
+        <p>Pon 2 monedas, pulsa Empezar y elige personaje con un golpe.<br />También funciona con control (joystick): conéctalo y pulsa cualquier botón.<br />Toca en cualquier lugar para cerrar.</p>
+    </div>
+</div>
+</body>
+</html>

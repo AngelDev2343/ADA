@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pool | Angel Dev Arcade</title>
+<link rel="icon" href="../favicon.ico" sizes="any" />
+<link rel="icon" href="../favicon.png" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #vista3d { position: fixed; inset: 0; touch-action: none; }
+  #vista3d canvas { display: block; }
+  #vista3d.mano { cursor: grab; }
+  #vista3d.apunta { cursor: crosshair; }
+
+  .panel {
+    background: rgba(8, 12, 10, 0.72);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    backdrop-filter: blur(4px);
+  }
+
+  #marcador {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .jugador { min-width: 200px; padding: 10px 14px; transition: border-color 0.2s; }
+  .jugador .nombre { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: #bbb; margin-bottom: 9px; }
+  .jugador .grupo { color: #777; font-size: 8px; align-self: center; }
+  .jugador.turno { border-color: #ffcf4a; }
+  .jugador.turno .nombre { color: #ffcf4a; }
+  .bolas { display: flex; gap: 5px; }
+  .mini {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: inset -3px -4px 6px rgba(0, 0, 0, 0.5), inset 2px 2px 3px rgba(255, 255, 255, 0.25), 0 1px 2px rgba(0, 0, 0, 0.6);
+    transition: opacity 0.3s, filter 0.3s;
+  }
+  .mini.rayada { background: linear-gradient(#f3f1ea 0 27%, var(--c) 27% 73%, #f3f1ea 73%); }
+  .mini span {
+    display: grid;
+    place-items: center;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fbfaf5;
+    color: #111;
+    font: 700 7px/1 "Segoe UI", system-ui, sans-serif;
+    letter-spacing: -0.4px;
+  }
+  .mini::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    width: 6px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    transform: rotate(-30deg);
+  }
+  .mini.vacia { background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+  .mini.vacia::after { display: none; }
+  .mini.fuera { opacity: 0.2; filter: grayscale(0.7); }
+
+  .tiempo { height: 4px; margin-top: 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; visibility: hidden; }
+  .tiempo div { height: 100%; width: 100%; background: #ffcf4a; }
+  .tiempo.activo { visibility: visible; }
+  .tiempo.poco div { background: #ff4a4a; animation: parpadeo 0.5s steps(2) infinite; }
+  @keyframes parpadeo { 50% { opacity: 0.4; } }
+  #estado { width: 250px; text-align: center; font-size: 9px; line-height: 1.8; color: #ddd; }
+
+  #fuerza {
+    position: fixed;
+    left: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 46vh;
+    padding: 6px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  #fuerza .relleno {
+    width: 100%;
+    height: 0;
+    border-radius: 9px;
+    background: linear-gradient(#ffcf4a, #ff8a3a 60%, #ff4a4a);
+  }
+  #fuerza .flecha { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); color: rgba(255, 255, 255, 0.35); font-size: 10px; }
+
+  #derecha {
+    position: fixed;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+  .etiqueta { font-size: 8px; color: #999; text-align: center; margin-bottom: 8px; }
+  #rueda {
+    width: 52px;
+    height: 26vh;
+    padding: 0;
+    cursor: ns-resize;
+    touch-action: none;
+    background:
+      linear-gradient(rgba(8, 12, 10, 0.95), transparent 22%, transparent 78%, rgba(8, 12, 10, 0.95)),
+      repeating-linear-gradient(#5a5a5a 0 3px, #2a2a2a 3px 11px);
+  }
+  #efecto {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #fff, #ddd 55%, #9a9a9a);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12), 0 6px 18px rgba(0, 0, 0, 0.6);
+    cursor: crosshair;
+    touch-action: none;
+  }
+  #efecto::before, #efecto::after { content: ""; position: absolute; background: rgba(0, 0, 0, 0.12); pointer-events: none; }
+  #efecto::before { left: 50%; top: 10%; bottom: 10%; width: 1px; }
+  #efecto::after { top: 50%; left: 10%; right: 10%; height: 1px; }
+  #punto {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    background: #e8262a;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+  }
+  .off { opacity: 0.35; pointer-events: none; }
+
+  #acciones { position: fixed; left: 26px; bottom: 22px; display: flex; gap: 10px; }
+  .seg { display: flex; padding: 4px; gap: 4px; }
+  .seg button, .boton {
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #aaa;
+    font: inherit;
+    font-size: 9px;
+    cursor: pointer;
+  }
+  .seg button:hover, .boton:hover { color: #fff; }
+  .seg button.on { background: #ffcf4a; color: #2a1d06; }
+  .boton { padding: 14px 14px; }
+
+  #ayuda {
+    position: fixed;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    max-width: 50vw;
+    font-size: 7px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 0.6s;
+  }
+  #ayuda.oculta { opacity: 0; }
+
+  #noticia {
+    position: fixed;
+    left: 50%;
+    top: 96px;
+    max-width: 60vw;
+    padding: 12px 18px;
+    font-size: 10px;
+    line-height: 1.8;
+    color: #ffcf4a;
+    text-align: center;
+    opacity: 0;
+    transform: translate(-50%, -8px);
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+  }
+  #noticia.ver { opacity: 1; transform: translate(-50%, 0); }
+  #noticia.falta { color: #ff6a5a; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(3px);
+  }
+  .overlay[hidden] { display: none; }
+  #inicio { background: radial-gradient(circle at 50% 45%, #0f2a1c 0%, #07140d 45%, #000 85%); backdrop-filter: none; }
+  h1 {
+    margin: 0;
+    font-size: clamp(26px, 6.5vmin, 60px);
+    color: #ffcf4a;
+    text-shadow: 0 4px 0 #9a7012, 0 8px 0 #4a3408, 0 0 30px rgba(255, 207, 74, 0.4);
+  }
+  h1.pierde { color: #ff4a4a; text-shadow: 0 4px 0 #7a1414, 0 8px 0 #3d0707, 0 0 30px rgba(255, 74, 74, 0.45); }
+  .info { margin: 0; max-width: 560px; color: #bbb; font-size: clamp(9px, 1.7vmin, 13px); line-height: 2; }
+  .opciones { display: grid; grid-template-columns: auto auto; gap: 14px 18px; align-items: center; }
+  .opciones .label { color: #8a8a7a; font-size: clamp(9px, 1.5vmin, 12px); text-align: right; }
+  .elegir { display: flex; gap: 8px; }
+  .elegir button {
+    padding: 10px 14px;
+    border: 3px solid #26382c;
+    border-radius: 10px;
+    background: transparent;
+    color: #b8c9b0;
+    font: inherit;
+    font-size: clamp(9px, 1.5vmin, 12px);
+    cursor: pointer;
+  }
+  .elegir button:hover { border-color: #4a6a50; }
+  .elegir button.on { border-color: #ffcf4a; color: #ffcf4a; }
+  .botones { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    padding: 14px 22px;
+    border: 0;
+    border-radius: 14px;
+    background: #ffcf4a;
+    color: #2a1d06;
+    font: inherit;
+    font-size: clamp(10px, 1.6vmin, 14px);
+    text-decoration: none;
+    box-shadow: 0 6px 0 #9a7012;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+  }
+  .btn:hover { filter: brightness(1.12); transform: translateY(-2px); box-shadow: 0 8px 0 #9a7012; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9a7012; }
+  .btn.ghost { background: #2b2b2b; color: #ddd; box-shadow: 0 6px 0 #111; }
+  .btn.ghost:hover { box-shadow: 0 8px 0 #111; }
+  .btn.ghost:active { box-shadow: 0 2px 0 #111; }
+  .teclas { margin: 0; color: #777; font-size: clamp(8px, 1.3vmin, 10px); line-height: 2.2; }
+</style>
+</head>
+<body>
+<div id="vista3d"></div>
+
+<div id="marcador">
+  <div class="jugador panel" id="j0"><div class="nombre"><span>TU</span><span class="grupo"></span></div><div class="bolas"></div><div class="tiempo" id="tiempo"><div></div></div></div>
+  <div id="estado"></div>
+  <div class="jugador panel" id="j1"><div class="nombre"><span>CPU</span><span class="grupo"></span></div><div class="bolas"></div><div class="tiempo"><div></div></div></div>
+</div>
+
+<div>
+  <div id="fuerza" class="panel"><div class="relleno"></div><span class="flecha">▼</span></div>
+</div>
+
+<div id="derecha">
+  <div><div class="etiqueta">AJUSTE</div><div id="rueda" class="panel"></div></div>
+  <div><div class="etiqueta">EFECTO</div><div id="efecto"><div id="punto"></div></div></div>
+</div>
+
+<div id="acciones">
+  <div class="seg panel" id="vistas">
+    <button data-vista="superior">SUPERIOR</button><button data-vista="libre">LIBRE</button>
+  </div>
+  <button class="boton panel" id="menuBtn">MENU</button>
+</div>
+
+<div id="ayuda"></div>
+<div id="noticia" class="panel"></div>
+
+<div class="overlay" id="inicio">
+  <h1>POOL</h1>
+  <p class="info">Bola 8 contra la CPU. Mete todas tus bolas, lisas o rayadas, y después la 8. Tienes 30 segundos por tiro.</p>
+  <div class="opciones">
+    <span class="label">NIVEL</span>
+    <div class="elegir" data-opcion="nivel">
+      <button data-valor="facil">FACIL</button><button data-valor="normal">NORMAL</button><button data-valor="dificil">DIFICIL</button>
+    </div>
+    <span class="label">SAQUE</span>
+    <div class="elegir" data-opcion="saque">
+      <button data-valor="tu">TU</button><button data-valor="cpu">CPU</button><button data-valor="azar">AZAR</button>
+    </div>
+  </div>
+  <p class="teclas">Arrastra sobre la mesa para apuntar, baja la barra de fuerza y suelta para tirar.<br>Teclado: flechas para apuntar (Shift = fino), Espacio mantenido para cargar, V para cambiar la vista.</p>
+  <div class="botones">
+    <button class="btn" id="jugarBtn">JUGAR</button>
+    <a class="btn ghost" href="../index.html">INICIO</a>
+  </div>
+</div>
+
+<div class="overlay" id="pausa" hidden>
+  <h1>PAUSA</h1>
+  <div class="botones">
+    <button class="btn" id="seguirBtn">SEGUIR</button>
+    <button class="btn ghost" id="nuevaBtn">NUEVA PARTIDA</button>
+    <a class="btn ghost" href="../index.html">INICIO</a>
+  </div>
+</div>
+
+<div class="overlay" id="fin" hidden>
+  <h1 id="finTitulo"></h1>
+  <p class="info" id="finInfo"></p>
+  <div class="botones">
+    <button class="btn" id="otraBtn">OTRA VEZ</button>
+    <button class="btn ghost" id="opcionesBtn">OPCIONES</button>
+    <a class="btn ghost" href="../index.html">INICIO</a>
+  </div>
+</div>
+
+<script src="three/three.js"></script>
+<script src="three/OBJLoader.js"></script>
+<script src="fisica.js"></script>
+<script src="cpu.js"></script>
+<script src="juego.js"></script>
+<script src="../inicio.js"></script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ajedrez | Angel Dev Arcade</title>
+<link rel="icon" href="../favicon.ico" sizes="any" />
+<link rel="icon" href="../favicon.png" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 45%, #2a2013 0%, #120d07 45%, #000 85%);
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  img { -webkit-user-drag: none; }
+
+  #game {
+    --board: min(76dvh, 94vw);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.4dvh;
+  }
+
+  .bar {
+    width: var(--board);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 26px;
+    font-size: clamp(9px, 1.5dvh, 13px);
+    color: #c9b48a;
+  }
+  .bar .name { white-space: nowrap; }
+  .bar.turn .name { color: #ffcf4a; text-shadow: 0 0 8px rgba(255, 207, 74, 0.6); }
+  .captured { display: flex; align-items: center; flex-wrap: wrap; }
+  .captured img { width: clamp(16px, 2.6dvh, 24px); margin-right: -4px; }
+  .captured .diff { margin-left: 10px; color: #8a7a5a; }
+  .bar .status { margin-left: auto; color: #ffcf4a; white-space: nowrap; }
+  .bar .status.check { color: #ff5a4a; animation: blink 0.5s steps(2) 4; }
+  .clock {
+    margin-left: auto;
+    padding: 6px 10px;
+    border: 2px solid #3a2c18;
+    border-radius: 8px;
+    color: #8a7a5a;
+    font-size: clamp(10px, 1.7dvh, 15px);
+  }
+  .clock[hidden] { display: none; }
+  .status + .clock { margin-left: 0; }
+  .turn .clock { border-color: #ffcf4a; color: #ffcf4a; }
+  .clock.low { border-color: #ff5a4a; color: #ff5a4a; }
+  .turn .clock.low { animation: blink 0.5s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  #board {
+    width: var(--board);
+    height: var(--board);
+    display: grid;
+    grid-template: repeat(8, 1fr) / repeat(8, 1fr);
+    border: 6px solid #2a1d12;
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px #5a4024, 0 18px 40px rgba(0, 0, 0, 0.7);
+    touch-action: none;
+  }
+  .sq { position: relative; display: grid; place-items: center; }
+  .sq.light { background: #e3cfa6; }
+  .sq.dark { background: #a8794f; }
+  .sq.last::before, .sq.sel::before, .sq.check::before { content: ""; position: absolute; inset: 0; }
+  .sq.last::before { background: rgba(255, 207, 74, 0.38); }
+  .sq.sel::before { background: rgba(0, 195, 227, 0.45); }
+  .sq.check::before { background: radial-gradient(circle, rgba(255, 40, 40, 0.95) 0%, rgba(255, 40, 40, 0.5) 45%, transparent 75%); }
+  .sq.move::after, .sq.capture::after { content: ""; position: absolute; pointer-events: none; z-index: 2; }
+  .sq.move::after { width: 30%; height: 30%; border-radius: 50%; background: rgba(20, 12, 4, 0.35); }
+  .sq.capture::after { inset: 4%; border-radius: 50%; border: calc(var(--board) / 80) solid rgba(20, 12, 4, 0.35); }
+  .sq .coord { position: absolute; font-size: clamp(6px, 1.1dvh, 10px); pointer-events: none; opacity: 0.75; }
+  .sq .coord.file { right: 3px; bottom: 3px; }
+  .sq .coord.rank { left: 3px; top: 3px; }
+  .sq.light .coord { color: #a8794f; }
+  .sq.dark .coord { color: #e3cfa6; }
+  .piece { position: relative; z-index: 1; width: 88%; pointer-events: none; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.3)); }
+  .piece.slide { transition: transform 0.18s ease-out; }
+  .piece.drag { z-index: 5; filter: drop-shadow(0 10px 6px rgba(0, 0, 0, 0.5)); scale: 1.12; }
+  #board.mine .sq.own { cursor: grab; }
+  #board.mine .sq.move, #board.mine .sq.capture { cursor: pointer; }
+
+  .controls { display: flex; gap: 12px; }
+  .btn {
+    padding: 14px 22px;
+    border: 0;
+    border-radius: 14px;
+    background: #ffcf4a;
+    color: #2a1d06;
+    font: inherit;
+    font-size: clamp(10px, 1.6dvh, 14px);
+    text-decoration: none;
+    box-shadow: 0 6px 0 #9a7012;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+  }
+  .btn:hover { filter: brightness(1.12); transform: translateY(-2px); box-shadow: 0 8px 0 #9a7012; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9a7012; }
+  .btn.ghost { background: #2b2b2b; color: #ddd; box-shadow: 0 6px 0 #111; }
+  .btn.ghost:hover { box-shadow: 0 8px 0 #111; }
+  .btn.ghost:active { box-shadow: 0 2px 0 #111; }
+  .btn:disabled { opacity: 0.4; pointer-events: none; }
+  .controls .btn { padding: 12px 16px; font-size: clamp(9px, 1.4dvh, 12px); }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(3px);
+  }
+  .overlay[hidden] { display: none; }
+  #screen { background: radial-gradient(circle at 50% 45%, #2a2013 0%, #120d07 45%, #000 85%); backdrop-filter: none; }
+  #title {
+    margin: 0;
+    font-size: clamp(26px, 6.5vmin, 60px);
+    color: #ffcf4a;
+    text-shadow: 0 4px 0 #9a7012, 0 8px 0 #4a3408, 0 0 30px rgba(255, 207, 74, 0.4);
+  }
+  #title.lose { color: #ff4a4a; text-shadow: 0 4px 0 #7a1414, 0 8px 0 #3d0707, 0 0 30px rgba(255, 74, 74, 0.45); }
+  #title.draw { color: #ddd; text-shadow: 0 4px 0 #666, 0 8px 0 #333, 0 0 30px rgba(255, 255, 255, 0.25); }
+  .info { margin: 0; color: #bbb; font-size: clamp(10px, 1.8vmin, 14px); line-height: 2; }
+  .options { display: grid; grid-template-columns: auto auto; gap: 14px 18px; align-items: center; }
+  .options .label { color: #8a7a5a; font-size: clamp(9px, 1.5vmin, 12px); text-align: right; }
+  .seg { display: flex; gap: 8px; }
+  .seg button {
+    padding: 10px 14px;
+    border: 3px solid #3a2c18;
+    border-radius: 10px;
+    background: transparent;
+    color: #c9b48a;
+    font: inherit;
+    font-size: clamp(9px, 1.5vmin, 12px);
+    cursor: pointer;
+  }
+  .seg button:hover { border-color: #6a5030; }
+  .seg button.on { border-color: #ffcf4a; color: #ffcf4a; }
+  .switch {
+    position: relative;
+    justify-self: start;
+    width: 64px;
+    height: 32px;
+    padding: 0;
+    border: 3px solid #3a2c18;
+    border-radius: 16px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #6a5030;
+    transition: left 0.15s, background 0.15s;
+  }
+  .switch:hover { border-color: #6a5030; }
+  .switch.on { border-color: #ffcf4a; }
+  .switch.on::after { left: 35px; background: #ffcf4a; }
+  .time-row[hidden] { display: none; }
+  .buttons { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+  #promo .choices { display: flex; gap: 12px; }
+  #promo button {
+    width: clamp(64px, 11vmin, 96px);
+    aspect-ratio: 1;
+    padding: 6px;
+    border: 3px solid #3a2c18;
+    border-radius: 14px;
+    background: #e3cfa6;
+    cursor: pointer;
+  }
+  #promo button:hover { border-color: #ffcf4a; }
+  #promo img { width: 100%; display: block; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div class="bar" id="topBar"><span class="name"></span><span class="captured"></span><span class="clock"></span></div>
+  <div id="board"></div>
+  <div class="bar" id="bottomBar"><span class="name">JUGADOR</span><span class="captured"></span><span class="status" id="status"></span><span class="clock"></span></div>
+  <div class="controls">
+    <button class="btn ghost" id="undoBtn">DESHACER</button>
+    <button class="btn ghost" id="resignBtn">RENDIRSE</button>
+    <a class="btn ghost" href="../index.html">INICIO</a>
+  </div>
+</div>
+
+<div class="overlay" id="screen">
+  <h1 id="title">AJEDREZ</h1>
+  <p class="info" id="info">Juega contra la CPU.</p>
+  <div class="options">
+    <span class="label">COLOR</span>
+    <div class="seg" data-option="color">
+      <button data-value="w">BLANCAS</button><button data-value="b">NEGRAS</button><button data-value="azar">AZAR</button>
+    </div>
+    <span class="label">NIVEL</span>
+    <div class="seg" data-option="nivel">
+      <button data-value="facil">FACIL</button><button data-value="normal">NORMAL</button><button data-value="dificil">DIFICIL</button>
+    </div>
+    <span class="label">RELOJ</span>
+    <button class="switch" id="clockSwitch" aria-label="Reloj"></button>
+    <span class="label time-row">TIEMPO</span>
+    <div class="seg time-row" data-option="minutos">
+      <button data-value="1">1 MIN</button><button data-value="3">3 MIN</button><button data-value="5">5 MIN</button><button data-value="10">10 MIN</button>
+    </div>
+  </div>
+  <div class="buttons">
+    <button class="btn" id="playBtn">JUGAR</button>
+    <a class="btn ghost" href="../index.html">INICIO</a>
+  </div>
+</div>
+
+<div class="overlay" id="promo" hidden>
+  <p class="info">Elige la pieza para coronar.</p>
+  <div class="choices"></div>
+</div>
+
+<script src="motor.js"></script>
+<script src="juego.js"></script>
+<script src="../inicio.js"></script>
+</body>
+</html>

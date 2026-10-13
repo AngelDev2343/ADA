@@ -1,0 +1,24 @@
+{
+  "name": "Escape Road",
+  "short_name": "Escape Road",
+  "description": "Un juego de escape emocionante lleno de desafíos y aventuras.",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#181818",
+  "theme_color": "#181818",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+// Capturas que aparecen en el Álbum, en el orden en que se muestran
+const ALBUM = [
+    { juego: "Eaglercraft", imagen: "album/minecraft-1.12.2.jpg" },
+    { juego: "Eaglercraft", imagen: "album/minecraft-1.8.8.jpg" },
+    { juego: "The Simpsons: Hit & Run", imagen: "album/simpsons.jpg" },
+    { juego: "Street Fighter III: 3rd Strike", imagen: "album/street3.jpg" },
+    { juego: "KOF 2002: Magic Plus II", imagen: "album/kof2002.jpg" },
+    { juego: "Bloody Roar", imagen: "album/bloodyroar.jpg" },
+    { juego: "The Simpsons Arcade", imagen: "album/simpsonsarcade.jpg" },
+    { juego: "Pool", imagen: "album/pool.jpg" },
+    { juego: "Ajedrez", imagen: "album/ajedrez.jpg" },
+    { juego: "Escape Road", imagen: "album/escape.jpg" },
+    { juego: "Car Soccer", imagen: "album/carsoccer.jpg" },
+    { juego: "Fireboy & Watergirl", imagen: "album/fandw.jpg" },
+    { juego: "Flappy Bird", imagen: "album/flappy.jpg" },
+    { juego: "Zombie Invasion", imagen: "album/zombie.jpg" },
+    { juego: "Meteor Maps", imagen: "album/meteor.jpg" },
+    { juego: "Explodes The Planet", imagen: "album/explodes.jpg" },
+    { juego: "8 Ball Magic", imagen: "album/8ball.jpg" },
+];

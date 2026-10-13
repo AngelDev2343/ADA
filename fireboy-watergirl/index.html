@@ -1,0 +1,100 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no">
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Fireboy & Watergirl 1 Forest Temple">
+    <meta id="viewport" name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui,shrink-to-fit=no" />
+
+    <title>Fireboy & Watergirl | Angel Dev Arcade</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="icon" href="../favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-60x60.png">
+
+    <style>
+        /* Evita el retraso táctil y el resaltado al tocar */
+        html, body {
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation; /* elimina retraso de click */
+            -ms-touch-action: manipulation; /* IE/Edge antiguos */
+            -webkit-tap-highlight-color: transparent; /* quita highlight iOS */
+            -webkit-user-select: none; /* evita selección de texto */
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Aplica a todos los elementos para que no haya retrasos */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        #root, #container, #hammer {
+            width: 100%;
+            height: 100%;
+        }
+
+        #debug-fps {
+            color: #ff0000;
+            position: absolute;
+            top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+        window.requireNode = window.require;
+        window.require = undefined;
+    </script>
+    <script src="bower_components/requirejs/require.js"></script>
+
+    <div id="root">
+        <div id="container"></div>
+        <div id="hammer"></div>
+        <div id="debug-fps"></div>
+    </div>
+
+    <script type="text/javascript">
+        var gameName = "fireboy-and-watergirl-forest-temple.min.js";
+
+        function addScript(src, buster, callback) {
+            var s = document.createElement('script');
+            s.setAttribute('src', src + '?v=' + buster);
+            if (typeof callback === 'function') {
+                s.onload = callback;
+            }
+            document.body.appendChild(s);
+        }
+
+        addScript('version.js', 1, function () {
+            require(["fireboy-and-watergirl-forest-temple.min.js?v=" + version]);
+        });
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('✅ Service Worker registrado con éxito:', reg.scope))
+                    .catch(err => console.log('❌ Error al registrar el Service Worker:', err));
+            });
+        }
+    </script>
+<script src="../inicio.js"></script>
+</body>
+
+</html>

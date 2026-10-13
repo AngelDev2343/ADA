@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explodes The Planet | Angel Dev Arcade</title>
+  <link rel="icon" href="../favicon.ico" sizes="any" />
+  <link rel="icon" href="../favicon.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+  <style>
+    #nukeVideo {
+      display: none;           /* oculto al inicio */
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Explodes the planet</h1>
+
+  <div class="stage">
+    <!-- Imagen inicial -->
+    <img src="pla.gif" alt="Explosión" id="nukeImage" class="pla">
+
+    <!-- Video que reemplazará la imagen -->
+    <video id="nukeVideo" playsinline>
+      <source src="explodes.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <h2 id="warning">¡Peligro!</h2>
+
+  <!-- Botón -->
+  <div class="btn">
+    <img src="btn.png" alt="Botón nuclear" id="nukeButton">
+  </div>
+
+  <!-- Audio de explosión -->
+  <audio id="boomAudio" src="nuke-bomb.mp3" preload="auto"></audio>
+
+
+  <script>
+    const nukeButton = document.getElementById("nukeButton");
+    const nukeImage = document.getElementById("nukeImage");
+    const nukeVideo = document.getElementById("nukeVideo");
+    const boomAudio = document.getElementById("boomAudio");
+    const btnContainer = document.querySelector(".btn");
+
+    nukeButton.addEventListener("click", function() {
+      // Oculta la imagen, el aviso y el botón
+      nukeImage.style.display = 'none';
+      // visibility (no display) para que el escenario no crezca y la explosión mida lo mismo que el planeta
+      document.getElementById("warning").style.visibility = 'hidden';
+      btnContainer.style.visibility = 'hidden';
+
+      // Muestra y reproduce el video
+      nukeVideo.style.display = 'block';
+      nukeVideo.play();
+
+      nukeVideo.classList.add('shake');
+      document.body.classList.add('boom');
+
+      // Reproduce el audio
+      boomAudio.play().catch(err => console.log("Error al reproducir audio:", err));
+
+      // Redirige cuando termine el video
+      nukeVideo.onended = () => {
+        window.location.href = "try.html";
+      };
+    });
+  </script>
+
+<script src="../inicio.js"></script>
+</body>
+</html>
